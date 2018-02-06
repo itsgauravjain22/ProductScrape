@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
@@ -38,9 +39,10 @@ public class FlipkartScrape {
     static String productBookImage = "//div[@id='container']/div/div[1]/div/div/div/div/div/div[1]/div/div/div[2]/div[2]/img";
     static String productBookDescription = "//span[text()='Description']/parent::div/parent::div/div[2]/div";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InvalidFormatException {
         Map productMap = new HashMap();
-        for (String isbn : ExcelAdapter.getIsbnList()) {
+        ExcelAdapter excelAdapter = new ExcelAdapter();
+        for (String isbn : excelAdapter.getIsbnList()) {
             System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "/driver/chromedriver.exe");
             WebDriver driver = new ChromeDriver();
             try {
@@ -135,7 +137,7 @@ public class FlipkartScrape {
 
                 }
 
-                ExcelAdapter.updateExcelSheet(productMap);
+                excelAdapter.updateExcelSheet(productMap);
 
             } catch (InterruptedException ex) {
                 Logger.getLogger(FlipkartScrape.class.getName()).log(Level.SEVERE, null, ex);
