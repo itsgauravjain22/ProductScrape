@@ -47,10 +47,15 @@ public class ExcelAdapter {
             if (cell == null)
                 cell = row.createCell(getColNum(entry.getKey()));
             cell.setCellValue(entry.getValue());
-            System.out.print("\n"+row+"\n");
             System.out.println("Done");
         }
-        sheet.getRow(getRowNum(map.get("isbn"))).createCell(getColNum("sku")).setCellValue(map.get("isbn"));
+        System.out.print("\tSetting isbn: " + map.get("isbn") + " for ISBN = " + map.get("isbn") + "...");
+        row = sheet.getRow(getRowNum(map.get("isbn")));
+        cell = row.createCell(getColNum("sku"));
+        if (cell == null)
+            cell = row.createCell(getColNum(map.get("isbn")));
+        cell.setCellValue(map.get("isbn"));
+         System.out.println("Done");
         try {
             outputStream = new FileOutputStream(new File(FILE_NAME));
             workbook.write(outputStream);
