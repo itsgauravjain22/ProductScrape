@@ -6,21 +6,20 @@
 package com.justbestbooks.productscrape;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import static org.apache.commons.io.FileUtils.*;
 
 /**
  *
@@ -29,6 +28,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class ExcelAdapter {
 
     private final String FILE_NAME = System.getProperty("user.dir") + "/books.xlsx";
+    private final String TEST_FILE_NAME = System.getProperty("user.dir") + "/test.xlsx";
     XSSFWorkbook workbook = null;
 
     public ExcelAdapter() throws IOException, InvalidFormatException {
@@ -44,21 +44,25 @@ public class ExcelAdapter {
             System.out.print("\tSetting " + entry.getKey() + ": " + entry.getValue() + " for ISBN = " + map.get("isbn") + "...");
             row = sheet.getRow(getRowNum(map.get("isbn")));
             cell = row.getCell(getColNum(entry.getKey()));
-            if (cell == null)
+            if (cell == null) {
                 cell = row.createCell(getColNum(entry.getKey()));
+            }
             cell.setCellValue(entry.getValue());
             System.out.println("Done");
         }
         System.out.print("\tSetting isbn: " + map.get("isbn") + " for ISBN = " + map.get("isbn") + "...");
         row = sheet.getRow(getRowNum(map.get("isbn")));
         cell = row.createCell(getColNum("sku"));
-        if (cell == null)
+        if (cell == null) {
             cell = row.createCell(getColNum(map.get("isbn")));
+        }
         cell.setCellValue(map.get("isbn"));
-         System.out.println("Done");
+        System.out.println("Done");
         try {
-            outputStream = new FileOutputStream(new File(FILE_NAME));
+            outputStream = new FileOutputStream(new File(TEST_FILE_NAME));
             workbook.write(outputStream);
+            FileUtils.copyFile(new File(TEST_FILE_NAME), new File(FILE_NAME));
+            FileUtils.forceDelete(new File(TEST_FILE_NAME));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -79,7 +83,7 @@ public class ExcelAdapter {
         }
         return isbnList;
     }
-    
+
     public Sheet getExcelSheet() {
         Sheet sheet = workbook.getSheetAt(0);
         return sheet;

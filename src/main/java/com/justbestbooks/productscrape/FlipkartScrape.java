@@ -132,7 +132,7 @@ public class FlipkartScrape {
 
                 try {
                     element = driver.findElement(By.xpath(productBookDescription));
-                    productMap.put("description", element.getAttribute("innerHTML").trim().replaceAll("\n", ""));
+                    productMap.put("description", element.getAttribute("innerHTML").trim());
                 } catch (Exception e) {
 
                 }
