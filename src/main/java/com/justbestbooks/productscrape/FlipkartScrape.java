@@ -13,12 +13,8 @@ import java.util.logging.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 /**
  *
@@ -41,14 +37,17 @@ public class FlipkartScrape {
 
     public static void main(String[] args) throws IOException, InvalidFormatException {
         Map productMap = new HashMap();
-        ExcelAdapter excelAdapter = new ExcelAdapter();
+        String url=null;
+        ExcelAdapter excelAdapter = new ExcelAdapter("flipkart");
         for (String isbn : excelAdapter.getIsbnList()) {
-            System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "/driver/chromedriver.exe");
-            WebDriver driver = new ChromeDriver();
+            WebDriverInit webDriverInit = new WebDriverInit();
+            WebDriver driver = webDriverInit.getDriver();
             try {
                 JavascriptExecutor js = (JavascriptExecutor) driver;
                 driver.manage().window().maximize();
-                driver.get("https://www.flipkart.com/search?q=" + isbn);
+                url = "https://www.flipkart.com/search?q=" + isbn;
+                driver.get(url);
+                System.out.println("Browsing url: "+url);
                 WebElement element = driver.findElement(By.xpath("//div[@id='container']/div/div/div/div[2]/div/div[2]/div/div[3]/div/div[1]/div[1]/div/a"));
                 element.click();
                 for (String handle : driver.getWindowHandles()) {
@@ -132,15 +131,14 @@ public class FlipkartScrape {
 
                 try {
                     element = driver.findElement(By.xpath(productBookDescription));
-                    productMap.put("description", element.getAttribute("innerHTML").trim());
+                    productMap.put("description", element.getAttribute("innerHTML").replace("\n", "").trim());
                 } catch (Exception e) {
 
                 }
-
                 excelAdapter.updateExcelSheet(productMap);
-
-            } catch (InterruptedException ex) {
-                Logger.getLogger(FlipkartScrape.class.getName()).log(Level.SEVERE, null, ex);
+                productMap = null;
+            } catch (Exception e) {
+                
             } finally {
                 driver.quit();
             }

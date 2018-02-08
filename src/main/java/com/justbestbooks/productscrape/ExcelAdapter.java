@@ -6,6 +6,7 @@
 package com.justbestbooks.productscrape;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -20,6 +21,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import static org.apache.commons.io.FileUtils.*;
+import org.apache.poi.xssf.usermodel.XSSFCell;
 
 /**
  *
@@ -27,36 +29,46 @@ import static org.apache.commons.io.FileUtils.*;
  */
 public class ExcelAdapter {
 
-    private final String FILE_NAME = System.getProperty("user.dir") + "/books.xlsx";
-    private final String TEST_FILE_NAME = System.getProperty("user.dir") + "/test.xlsx";
+    private String FILE_NAME = null;
+    private final String TEST_FILE_NAME = System.getProperty("user.dir") + "/test.xlsm";
     XSSFWorkbook workbook = null;
+    FileInputStream fileInputStream = null;
+    FileOutputStream outputStream = null;
 
-    public ExcelAdapter() throws IOException, InvalidFormatException {
-        workbook = new XSSFWorkbook(new File(FILE_NAME));
+    public ExcelAdapter(String platform) throws IOException, InvalidFormatException {
+        FILE_NAME = System.getProperty("user.dir")+"/"+platform+".xlsm";
+        fileInputStream = new FileInputStream(FILE_NAME);
+        workbook = new XSSFWorkbook(fileInputStream);
     }
 
     public void updateExcelSheet(Map<String, String> map) throws IOException {
-        FileOutputStream outputStream = null;
         Sheet sheet = getExcelSheet();
         Row row;
         Cell cell;
+        row = sheet.getRow(getRowNum(map.get("isbn")));
         for (Map.Entry<String, String> entry : map.entrySet()) {
-            System.out.print("\tSetting " + entry.getKey() + ": " + entry.getValue() + " for ISBN = " + map.get("isbn") + "...");
-            row = sheet.getRow(getRowNum(map.get("isbn")));
+            System.out.print("\tSetting " + entry.getKey() + ": " + entry.getValue().replace("\n", "") + " for ISBN = " + map.get("isbn") + "...");
             cell = row.getCell(getColNum(entry.getKey()));
             if (cell == null) {
                 cell = row.createCell(getColNum(entry.getKey()));
             }
-            cell.setCellValue(entry.getValue());
+            cell.setCellValue(entry.getValue().replace("\n", ""));
             System.out.println("Done");
         }
-        System.out.print("\tSetting isbn: " + map.get("isbn") + " for ISBN = " + map.get("isbn") + "...");
-        row = sheet.getRow(getRowNum(map.get("isbn")));
-        cell = row.createCell(getColNum("sku"));
+        System.out.print("\tSetting sku: " + map.get("isbn") + " for ISBN = " + map.get("isbn") + "...");
+        cell = row.getCell(getColNum("sku"));
         if (cell == null) {
-            cell = row.createCell(getColNum(map.get("isbn")));
+            cell = row.createCell(getColNum("sku"));
         }
         cell.setCellValue(map.get("isbn"));
+        System.out.println("Done");
+        
+        System.out.print("\tSetting published: 0 for ISBN = " + map.get("isbn") + "...");
+        cell = row.getCell(getColNum("published"));
+        if (cell == null) {
+            cell = row.createCell(getColNum("published"));
+        }
+        cell.setCellValue("0");
         System.out.println("Done");
         try {
             outputStream = new FileOutputStream(new File(TEST_FILE_NAME));
@@ -77,9 +89,14 @@ public class ExcelAdapter {
     public List<String> getIsbnList() throws IOException {
         List<String> isbnList = new ArrayList<String>();
         Sheet sheet = getExcelSheet();
+        Row row;
+        Cell cell;
         DataFormatter formatter = new DataFormatter();
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-            isbnList.add(formatter.formatCellValue(sheet.getRow(i).getCell(getColNum("isbn"))));
+            row = sheet.getRow(i);
+            cell = row.getCell(getColNum("isbn"));
+            cell.setCellType(XSSFCell.CELL_TYPE_STRING);
+            isbnList.add(formatter.formatCellValue(cell));
         }
         return isbnList;
     }
